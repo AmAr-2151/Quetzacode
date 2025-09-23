@@ -1,7 +1,7 @@
 # 🌐 QuetzaPay  
 
 <p align="center">
-  <img src="https://github.com/AmAr-2151/Quetza-Code/blob/principal/QuetzaPay/assets/Logo.png" alt="QuetzaPay Logo" width="250"/>
+  <img src="https://github.com/AmAr-2151/Quetzacode/blob/principal/QuetzaPay/assets/Logo.png" alt="QuetzaPay Logo" width="250"/>
 </p>
 
 
