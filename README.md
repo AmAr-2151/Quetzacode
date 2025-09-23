@@ -2,7 +2,7 @@
 
 <p align="center">
   <img src="https://github.com/AmAr-2151/Quetzacode/blob/main/assets/Logo.png" alt="QuetzaPay Logo" width="250"/>
-</p>  
+</p>
 
 🚀 Democratizando los pagos digitales para microempresarios  
 
