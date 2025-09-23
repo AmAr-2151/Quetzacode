@@ -126,3 +126,37 @@ In Mexico, 92% of micro-entrepreneurs operate in cash, which causes:
 
 🚫 Barriers to digital tools.
 
+💡 Solution
+
+QuetzaPay is a Progressive Web App (PWA) enabling merchants to accept payments digitally without specialized hardware.
+
+
+✨ Key features:
+
+Offline-First payments.
+
+Real-time dashboards with insights.
+
+🛠️ Technologies
+
+React.js • Node.js • Express • MongoDB • Interledger/Open Payments • WebSockets • Cloud
+
+✅ Benefits
+
+✔ Financial inclusion.
+✔ Reduced cash risks.
+✔ Saves time.
+✔ Scalable to millions of transactions.
+✔ Based on open standards.
+
+👥 Team
+
+👩‍💻 Amanda Aragón – Backend & Open Payments integration
+
+🎨 Akari Avendaño – PWA Frontend (UX/UI)
+
+☁️ Cesar Aceves – Cloud infrastructure and deployment
+
+📊 Uriel Ake – User research and data analysis
+
+
