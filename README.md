@@ -8,67 +8,54 @@
 
 
 
-🚀 Democratizando los pagos digitales para microempresarios
-📖 Tabla de Contenidos
+🇲🇽 QuetzaPay – Descripción en Español
+📖 Descripción Ampliada
 
-📌 Problema
+QuetzaPay busca resolver la dependencia del efectivo entre microempresarios en México (92% aún opera con efectivo). Esto genera inseguridad, costos elevados y exclusión digital.
 
-💡 Solución
+La solución es una aplicación web progresiva (PWA)
+ que funciona en cualquier dispositivo sin descargas ni hardware adicional. Basada en Interledger / Open Payments
+ garantiza:
 
-🛠️ Tecnologías
+Interoperabilidad con distintas billeteras digitales.
 
-✅ Beneficios
+Bajos costos de transacción.
 
-🏗️ Arquitectura
+Escalabilidad hacia miles/millones de pagos.
 
-🔑 Funciones
+✨ Características
 
-👥 Equipo
+Funciona sin conexión a internet (Offline-First
+).
 
-📂 Instalación
+Envía notificaciones instantáneas (<200ms) con WebSockets
+.
 
-🌍 English Version
+Dashboards con métricas en tiempo real.
 
-📌 Problema
+🎯 Beneficios
 
-En México, el 92% de los microempresarios opera en efectivo, lo que genera:
+🔒 Menos riesgos por manejo de efectivo.
 
-⏳ Altos costos de tiempo.
+⏳ Ahorro de tiempo y operaciones más eficientes.
 
-🔒 Riesgos de inseguridad.
-
-🚫 Falta de acceso a herramientas digitales modernas.
-
-
-
-
-💡 Solución
-
-QuetzaPay es una PWA (Progressive Web App) que permite aceptar pagos digitales sin hardware adicional ni descargas.
-
-✨ Características principales:
-
-Offline-First: registrar pagos sin internet y sincronizar después.
-
-Dashboards en tiempo real: ventas, métodos de pago y actividad del comercio.
+🌍 Inclusión financiera con herramientas sostenibles.
 
 🛠️ Tecnologías
-Componente	          Tecnología
-Frontend	                       React.js
-Backend	                       Node.js + Express
-Base de Datos	            MongoDB
-Protocolo	                       Interledger / Open Payments
-Tiempo real	                       WebSockets
-Infraestructura	            Cloud + Microservicios
 
+Frontend: React.js
 
-✅ Beneficios
+Backend: Node.js
+ + Express
 
-✔ Inclusión financiera para pequeños negocios.
-✔ Menos riesgos por manejo de efectivo.
-✔ Ahorro de tiempo en operaciones.
-✔ Escalabilidad hacia miles/millones de transacciones.
-✔ Uso de estándares abiertos → interoperabilidad.
+Base de datos: MongoDB
+
+Protocolo: Interledger / Open Payments
+
+Tiempo real: WebSockets
+
+Infraestructura: Cloud Deployment
+ + Microservicios
 
 🏗️ Arquitectura
 [ React.js (Frontend - PWA) ] 
@@ -81,20 +68,17 @@ Infraestructura	            Cloud + Microservicios
         ⬇
 [ Cloud Deployment + WebSockets ]
 
-
-
 🔑 Funciones
 
-💳 Registro de pagos digitales en tiempo real.
+💳 Pagos digitales en tiempo real.
 
 📶 Operación offline con sincronización automática.
 
 📊 Dashboard con métricas.
 
-🔔 Notificaciones instantáneas (<200ms).
+🔔 Notificaciones instantáneas.
 
-🌍 Integración abierta con billeteras digitales.
-
+🌍 Integración con billeteras digitales.
 
 👥 Equipo
 
@@ -107,47 +91,77 @@ Infraestructura	            Cloud + Microservicios
 📊 Uriel Ake – Investigación de usuarios y análisis de datos
 
 
+🌍 QuetzaPay – English Description
+📖 Extended Description
 
+QuetzaPay addresses the cash dependency problem of micro-entrepreneurs in Mexico (92% operate in cash). This leads to insecurity, high costs, and digital exclusion.
 
+The solution is a Progressive Web App (PWA)
+ that runs on any device without downloads or specialized hardware. Powered by Interledger / Open Payments
+ it provides:
 
-🌍 English Version
-<p align="center"> <img src="https://github.com/AmAr-2151/Quetzacode/blob/main/assets/Logo.png" alt="QuetzaPay Logo" width="250"/> </p>
-🚀 Democratizing digital payments for micro-entrepreneurs
+Interoperability with multiple wallets.
 
-👉 Scroll up for Spanish version
+Ultra-low transaction costs.
 
-📌 Problem
+Scalability to thousands/millions of payments.
 
-In Mexico, 92% of micro-entrepreneurs operate in cash, which causes:
+✨ Features
 
-⏳ High time costs.
+Works even offline (Offline-First
+).
 
-🔒 Security risks.
+Sends instant notifications (<200ms) with WebSockets
+.
 
-🚫 Barriers to digital tools.
+Real-time dashboards with business metrics.
 
-💡 Solution
+🎯 Benefits
 
-QuetzaPay is a Progressive Web App (PWA) enabling merchants to accept payments digitally without specialized hardware.
+🔒 Reduced risks from cash handling.
 
+⏳ Time savings and operational efficiency.
 
-✨ Key features:
-
-Offline-First payments.
-
-Real-time dashboards with insights.
+🌍 Sustainable financial inclusion.
 
 🛠️ Technologies
 
-React.js • Node.js • Express • MongoDB • Interledger/Open Payments • WebSockets • Cloud
+Frontend: React.js
 
-✅ Benefits
+Backend: Node.js
+ + Express
 
-✔ Financial inclusion.
-✔ Reduced cash risks.
-✔ Saves time.
-✔ Scalable to millions of transactions.
-✔ Based on open standards.
+Database: MongoDB
+
+Protocol: Interledger / Open Payments
+
+Real-time: WebSockets
+
+Infrastructure: Cloud Deployment
+ + Microservices
+
+🏗️ Architecture
+[ React.js (Frontend - PWA) ] 
+        ⬇
+[ Node.js + Express (Backend) ]
+        ⬇
+[ Interledger / Open Payments ]
+        ⬇
+[ MongoDB (Database) ]
+        ⬇
+[ Cloud Deployment + WebSockets ]
+
+🔑 Key Features
+
+💳 Real-time digital payments.
+
+📶 Offline mode with auto-sync.
+
+📊 Business analytics dashboard.
+
+🔔 Instant notifications.
+
+🌍 Open wallet integration.
 
 👥 Team
 
@@ -158,5 +172,4 @@ React.js • Node.js • Express • MongoDB • Interledger/Open Payments • W
 ☁️ Cesar Aceves – Cloud infrastructure and deployment
 
 📊 Uriel Ake – User research and data analysis
-
 
