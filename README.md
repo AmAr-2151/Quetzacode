@@ -39,6 +39,9 @@ En México, el 92% de los microempresarios opera en efectivo, lo que genera:
 
 🚫 Falta de acceso a herramientas digitales modernas.
 
+
+
+
 💡 Solución
 
 QuetzaPay es una PWA (Progressive Web App) que permite aceptar pagos digitales sin hardware adicional ni descargas.
@@ -50,13 +53,15 @@ Offline-First: registrar pagos sin internet y sincronizar después.
 Dashboards en tiempo real: ventas, métodos de pago y actividad del comercio.
 
 🛠️ Tecnologías
-Componente	Tecnología
-Frontend	React.js
-Backend	Node.js + Express
-Base de Datos	MongoDB
-Protocolo	Interledger / Open Payments
-Tiempo real	WebSockets
-Infraestructura	Cloud + Microservicios
+Componente	          Tecnología
+Frontend	                       React.js
+Backend	                       Node.js + Express
+Base de Datos	            MongoDB
+Protocolo	                       Interledger / Open Payments
+Tiempo real	                       WebSockets
+Infraestructura	            Cloud + Microservicios
+
+
 ✅ Beneficios
 
 ✔ Inclusión financiera para pequeños negocios.
@@ -76,6 +81,8 @@ Infraestructura	Cloud + Microservicios
         ⬇
 [ Cloud Deployment + WebSockets ]
 
+
+
 🔑 Funciones
 
 💳 Registro de pagos digitales en tiempo real.
@@ -88,6 +95,7 @@ Infraestructura	Cloud + Microservicios
 
 🌍 Integración abierta con billeteras digitales.
 
+
 👥 Equipo
 
 👩‍💻 Amanda Aragón – Backend & Open Payments integration
@@ -98,21 +106,9 @@ Infraestructura	Cloud + Microservicios
 
 📊 Uriel Ake – Investigación de usuarios y análisis de datos
 
-📂 Instalación
 
-Clona el proyecto y ejecútalo localmente:
 
-# Clonar el repositorio
-git clone https://github.com/TU_USUARIO/quetzapay.git
 
-# Entrar al proyecto
-cd quetzapay
-
-# Instalar dependencias
-npm install
-
-# Ejecutar en modo desarrollo
-npm run dev
 
 🌍 English Version
 <p align="center"> <img src="assets/logo.png" alt="QuetzaPay Logo" width="250"/> </p>
@@ -130,34 +126,3 @@ In Mexico, 92% of micro-entrepreneurs operate in cash, which causes:
 
 🚫 Barriers to digital tools.
 
-💡 Solution
-
-QuetzaPay is a Progressive Web App (PWA) enabling merchants to accept payments digitally without specialized hardware.
-
-✨ Key features:
-
-Offline-First payments.
-
-Real-time dashboards with insights.
-
-🛠️ Technologies
-
-React.js • Node.js • Express • MongoDB • Interledger/Open Payments • WebSockets • Cloud
-
-✅ Benefits
-
-✔ Financial inclusion.
-✔ Reduced cash risks.
-✔ Saves time.
-✔ Scalable to millions of transactions.
-✔ Based on open standards.
-
-👥 Team
-
-👩‍💻 Amanda Aragón – Backend & Open Payments integration
-
-🎨 Akari Avendaño – PWA Frontend (UX/UI)
-
-☁️ Cesar Aceves – Cloud infrastructure and deployment
-
-📊 Uriel Ake – User research and data analysis
