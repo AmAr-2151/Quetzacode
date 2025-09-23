@@ -1,7 +1,7 @@
 # 🌐 QuetzaPay  
 
 <p align="center">
-  <img src="https://github.com/AmAr-2151/Quetzapay/assets/Logo.png" alt="QuetzaPay Logo" width="250"/>
+  <img src="https://github.com/AmAr-2151/Quetzacode/Quetzapay/assets/Logo.png" alt="QuetzaPay Logo" width="250"/>
 </p>
 
 🚀 Democratizando los pagos digitales para microempresarios  
