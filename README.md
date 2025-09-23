@@ -1,5 +1,5 @@
 🌐 QuetzaPay
-<p align="center"> <img src="assets/Logo.png" alt="QuetzaPay Logo" width="250"/> </p>
+<p align="center"> <img src="https://github.com/AmAr-2151/Quetzacode/blob/main/assets/Logo.png" alt="QuetzaPay Logo" width="250"/> </p>
 
 
 
@@ -111,7 +111,7 @@ Infraestructura	            Cloud + Microservicios
 
 
 🌍 English Version
-<p align="center"> <img src="assets/logo.png" alt="QuetzaPay Logo" width="250"/> </p>
+<p align="center"> <img src="https://github.com/AmAr-2151/Quetzacode/blob/main/assets/Logo.png" alt="QuetzaPay Logo" width="250"/> </p>
 🚀 Democratizing digital payments for micro-entrepreneurs
 
 👉 Scroll up for Spanish version
