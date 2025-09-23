@@ -3,136 +3,161 @@ import { Transaction } from '../models/Transaction.js';
 import { Merchant } from '../models/Merchant.js';
 
 export const paymentController = {
-  /**
-   * Crear un nuevo pago (QR) para un comerciante
-   */
-  async createPayment(req, res) {
-    try {
-      const { amount, currency = 'MXN' } = req.body;
-      const merchantId = req.user?.id || 'test-merchant'; // En producción viene del auth middleware
+    async createPayment(req, res) {
+        try {
+            const { amount, currency = 'MXN' } = req.body;
+            const merchantId = req.user?.id || 'test-merchant';
 
-      // Validaciones básicas
-      if (!amount || amount <= 0) {
-        return res.status(400).json({ error: 'Amount is required and must be greater than 0' });
-      }
+            if (!amount || amount <= 0) {
+                return res.status(400).json({ error: 'Amount is required and must be greater than 0' });
+            }
 
-      console.log(`💳 Creando pago de ${amount} ${currency} para merchant: ${merchantId}`);
+            console.log(`💳 Creando pago de ${amount} ${currency} para merchant: ${merchantId}`);
 
-      // Obtener información del comerciante
-      const merchant = await Merchant.findById(merchantId);
-      if (!merchant) {
-        return res.status(404).json({ error: 'Merchant not found' });
-      }
+            // Obtener información del comerciante
+            const merchant = await Merchant.findOne({ email: 'test@quetza.com' }) || 
+                           await Merchant.create({
+                               name: 'Tienda de Prueba',
+                               email: 'test@quetza.com',
+                               walletAddress: process.env.MERCHANT_WALLET_ADDRESS_URL,
+                               businessName: 'QuetzaPay Test Store'
+                           });
 
-      // Crear incoming payment en Interledger
-      const incomingPaymentResult = await openPaymentsService.createIncomingPayment(
-        merchant.walletAddress,
-        amount
-      );
+            // Crear incoming payment (online u offline)
+            const paymentResult = await openPaymentsService.createIncomingPayment(
+                merchant.walletAddress,
+                amount
+            );
 
-      // Guardar transacción en la base de datos
-      const transaction = await Transaction.create({
-        merchantId: merchant._id,
-        amount: parseInt(amount),
-        currency,
-        status: 'pending',
-        paymentUrl: incomingPaymentResult.incomingPayment.id,
-        expiresAt: new Date(incomingPaymentResult.incomingPayment.expiresAt),
-        metadata: {
-          incomingPaymentId: incomingPaymentResult.incomingPayment.id,
-          assetCode: incomingPaymentResult.incomingPayment.incomingAmount.assetCode,
-          assetScale: incomingPaymentResult.incomingPayment.incomingAmount.assetScale
+            // Determinar estado basado en el modo
+            const status = paymentResult.mode === 'online' ? 'pending' : 'offline-pending';
+
+            // Guardar transacción en la base de datos
+            const transaction = await Transaction.create({
+                merchantId: merchant._id,
+                amount: parseInt(amount),
+                currency,
+                status: status,
+                paymentUrl: paymentResult.incomingPayment.id,
+                expiresAt: new Date(paymentResult.incomingPayment.expiresAt),
+                isOffline: paymentResult.mode === 'offline',
+                synced: paymentResult.mode === 'online',
+                metadata: {
+                    mode: paymentResult.mode,
+                    incomingPaymentId: paymentResult.incomingPayment.id,
+                    assetCode: paymentResult.incomingPayment.incomingAmount?.assetCode || 'MXN',
+                    assetScale: paymentResult.incomingPayment.incomingAmount?.assetScale || 2,
+                    simulated: paymentResult.incomingPayment.simulated || false
+                }
+            });
+
+            // Respuesta exitosa
+            res.status(201).json({
+                success: true,
+                transactionId: transaction._id,
+                paymentUrl: paymentResult.incomingPayment.id,
+                qrData: paymentResult.incomingPayment.id,
+                amount: parseInt(amount),
+                currency,
+                expiresAt: transaction.expiresAt,
+                mode: paymentResult.mode,
+                message: paymentResult.message || 'Payment QR generated successfully',
+                connectionStatus: openPaymentsService.getConnectionStatus()
+            });
+
+        } catch (error) {
+            console.error('Error creating payment:', error);
+            res.status(500).json({ 
+                success: false,
+                error: 'Failed to create payment',
+                details: error.message,
+                connectionStatus: openPaymentsService.getConnectionStatus()
+            });
         }
-      });
+    },
 
-      // Respuesta exitosa
-      res.status(201).json({
-        success: true,
-        transactionId: transaction._id,
-        paymentUrl: incomingPaymentResult.incomingPayment.id,
-        qrData: incomingPaymentResult.incomingPayment.id, // URL para el QR
-        amount: parseInt(amount),
-        currency,
-        expiresAt: transaction.expiresAt,
-        message: 'Payment QR generated successfully'
-      });
+    async checkPaymentStatus(req, res) {
+        try {
+            const { transactionId } = req.params;
 
-    } catch (error) {
-      console.error('Error creating payment:', error);
-      res.status(500).json({ 
-        error: 'Failed to create payment',
-        details: error.message 
-      });
-    }
-  },
+            const transaction = await Transaction.findById(transactionId);
+            if (!transaction) {
+                return res.status(404).json({ error: 'Transaction not found' });
+            }
 
-  /**
-   * Verificar estado de un pago
-   */
-  async checkPaymentStatus(req, res) {
-    try {
-      const { transactionId } = req.params;
+            // Verificar estado en Interledger (o simulado)
+            const paymentStatus = await openPaymentsService.checkPaymentStatus(transaction.paymentUrl);
 
-      const transaction = await Transaction.findById(transactionId);
-      if (!transaction) {
-        return res.status(404).json({ error: 'Transaction not found' });
-      }
+            // Actualizar estado en la base de datos si cambió
+            if (paymentStatus.completed && transaction.status !== 'completed') {
+                transaction.status = 'completed';
+                transaction.completedAt = new Date();
+                transaction.synced = true;
+                await transaction.save();
+            }
 
-      // Verificar estado en Interledger
-      const paymentStatus = await openPaymentsService.checkPaymentStatus(transaction.paymentUrl);
+            res.json({
+                success: true,
+                transactionId: transaction._id,
+                status: transaction.status,
+                amount: transaction.amount,
+                currency: transaction.currency,
+                interledgerStatus: paymentStatus,
+                completedAt: transaction.completedAt,
+                mode: paymentStatus.mode,
+                connectionStatus: openPaymentsService.getConnectionStatus()
+            });
 
-      // Actualizar estado en la base de datos si cambió
-      if (paymentStatus.completed && transaction.status !== 'completed') {
-        transaction.status = 'completed';
-        transaction.completedAt = new Date();
-        await transaction.save();
-      }
-
-      res.json({
-        transactionId: transaction._id,
-        status: transaction.status,
-        amount: transaction.amount,
-        currency: transaction.currency,
-        interledgerStatus: paymentStatus,
-        completedAt: transaction.completedAt
-      });
-
-    } catch (error) {
-      console.error('Error checking payment status:', error);
-      res.status(500).json({ error: 'Failed to check payment status' });
-    }
-  },
-
-  /**
-   * Listar transacciones de un comerciante
-   */
-  async getMerchantTransactions(req, res) {
-    try {
-      const merchantId = req.user?.id || 'test-merchant';
-      const { limit = 50, page = 1 } = req.query;
-
-      const transactions = await Transaction.find({ merchantId })
-        .sort({ createdAt: -1 })
-        .limit(parseInt(limit))
-        .skip((parseInt(page) - 1) * parseInt(limit));
-
-      const total = await Transaction.countDocuments({ merchantId });
-
-      res.json({
-        transactions,
-        pagination: {
-          page: parseInt(page),
-          limit: parseInt(limit),
-          total,
-          pages: Math.ceil(total / parseInt(limit))
+        } catch (error) {
+            console.error('Error checking payment status:', error);
+            res.status(500).json({ 
+                success: false,
+                error: 'Failed to check payment status',
+                details: error.message 
+            });
         }
-      });
+    },
 
-    } catch (error) {
-      console.error('Error fetching transactions:', error);
-      res.status(500).json({ error: 'Failed to fetch transactions' });
+    // Nuevo endpoint: Estado del servicio
+    async getServiceStatus(req, res) {
+        try {
+            const status = openPaymentsService.getConnectionStatus();
+            
+            res.json({
+                success: true,
+                service: 'QuetzaPay Backend',
+                timestamp: new Date().toISOString(),
+                openPayments: status,
+                database: 'connected', // Asumiendo que MongoDB está conectado
+                environment: process.env.NODE_ENV
+            });
+        } catch (error) {
+            res.status(500).json({
+                success: false,
+                error: 'Service status check failed'
+            });
+        }
+    },
+
+    // Reconectar manualmente
+    async reconnectService(req, res) {
+        try {
+            await openPaymentsService.reconnect();
+            const status = openPaymentsService.getConnectionStatus();
+            
+            res.json({
+                success: true,
+                message: 'Reconnection attempt completed',
+                status: status
+            });
+        } catch (error) {
+            res.status(500).json({
+                success: false,
+                error: 'Reconnection failed',
+                details: error.message
+            });
+        }
     }
-  }
 };
 
 export default paymentController;

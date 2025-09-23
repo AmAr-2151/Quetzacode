@@ -25,12 +25,9 @@ websocketService.initialize(server);
 
 // Middleware básico
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:5173',
+  origin: ['http://localhost:3001', 'http://127.0.0.1:3000'], // ✅ Múltiples opciones
   credentials: true
 }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
 // Conectar a la base de datos
 connectDB();
 

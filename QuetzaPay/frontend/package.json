@@ -1,5 +1,6 @@
 {
-  "name": "quetzapay-frontend",
+  "name": "quetza-pay-frontend",
+  "private": true,
   "version": "1.0.0",
   "type": "module",
   "scripts": {
@@ -10,22 +11,15 @@
   "dependencies": {
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^6.14.0",
-    "socket.io-client": "^4.7.2",
-    "axios": "^1.4.0",
-    "qrcode.react": "^3.1.0",
-    "chart.js": "^4.3.0",
-    "react-chartjs-2": "^5.2.0"
+    "qrcode": "^1.5.3",
+    "axios": "^1.5.0",
+    "recharts": "^2.8.0"
   },
   "devDependencies": {
-    "@types/react": "^18.2.0",
-    "@vitejs/plugin-react": "^4.0.0",
-    "vite": "^4.3.0",
-    "vite-plugin-pwa": "^0.16.0"
-  },
-  "description": "",
-  "main": "vite.config.js",
-  "keywords": [],
-  "author": "",
-  "license": "ISC"
+    "@types/react": "^18.2.15",
+    "@types/react-dom": "^18.2.7",
+    "@vitejs/plugin-react": "^4.0.3",
+    "vite": "^4.4.5",
+    "vite-plugin-pwa": "^0.16.4"
+  }
 }

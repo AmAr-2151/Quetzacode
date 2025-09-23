@@ -1,31 +1,16 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
-  plugins: [
-    react(),
-    VitePWA({
-      registerType: 'autoUpdate',
-      workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg}']
-      },
-      manifest: {
-        name: 'QuetzaPay',
-        short_name: 'QuetzaPay',
-        description: 'Sistema de pagos digitales para microempresarios',
-        theme_color: '#2D5BFF',
-        icons: [
-          {
-            src: 'icons/icon-192.png',
-            sizes: '192x192',
-            type: 'image/png'
-          }
-        ]
-      }
-    })
-  ],
+  plugins: [react()],
   server: {
-    port: 3000
+    port: 3001,
+    host: '0.0.0.0', // ✅ Acepta conexiones de cualquier IP
+    strictPort: true, // ✅ Falla si el puerto no está disponible
+    open: true // ✅ Abre el navegador automáticamente
+  },
+  preview: {
+    port: 3001,
+    host: '0.0.0.0'
   }
 })
