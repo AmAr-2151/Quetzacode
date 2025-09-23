@@ -1,5 +1,5 @@
 🌐 QuetzaPay
-<p align="center"> <img src="assets/logo.png" alt="QuetzaPay Logo" width="250"/> </p>
+<p align="center"> <img src="assets/Logo.png" alt="QuetzaPay Logo" width="250"/> </p>
 
 
 
