@@ -1,63 +1,71 @@
-import { OpenPaymentsConfig } from '../config/openPayments.js';
+import { openPaymentsConfig } from '../config/openPayments.js';
 
 class OpenPaymentsService {
     constructor() {
         this.client = null;
-        this.config = new OpenPaymentsConfig();
         this.isConnected = false;
-        this.connectionRetries = 0;
-        this.maxRetries = 3;
+        this.connectionError = null;
     }
 
     async initialize() {
-        if (!this.client) {
-            try {
-                console.log('🔄 Inicializando cliente Open Payments...');
-                this.client = await this.config.getAuthenticatedClient();
-                this.isConnected = true;
-                this.connectionRetries = 0;
-                console.log('✅ Cliente Open Payments conectado');
-            } catch (error) {
-                this.isConnected = false;
-                console.warn('⚠️  No se pudo conectar a Open Payments:', error.message);
-                
-                if (this.connectionRetries < this.maxRetries) {
-                    this.connectionRetries++;
-                    console.log(`🔄 Reintentando conexión (${this.connectionRetries}/${this.maxRetries})...`);
-                    await new Promise(resolve => setTimeout(resolve, 2000));
-                    return this.initialize();
-                } else {
-                    console.error('❌ Máximo de reintentos alcanzado. Modo offline activado.');
-                    throw error;
-                }
-            }
+        if (this.client && this.isConnected) {
+            return this.client;
         }
-        return this.client;
+
+        try {
+            console.log('🔄 Inicializando servicio Open Payments...');
+            this.client = await openPaymentsConfig.getAuthenticatedClient();
+            this.isConnected = true;
+            this.connectionError = null;
+            console.log('✅ Servicio Open Payments inicializado correctamente');
+            return this.client;
+        } catch (error) {
+            this.isConnected = false;
+            this.connectionError = error.message;
+            console.error('❌ Error inicializando Open Payments:', error);
+            throw error;
+        }
     }
 
-    async createIncomingPayment(receivingWalletUrl, amount) {
+    async createIncomingPayment(receivingWalletUrl, amount, currency = 'MXN') {
+        await this.initialize();
+
+        console.log(`💳 Creando incoming payment para ${amount} ${currency}`);
+
         try {
-            await this.initialize();
-            
-            if (!this.isConnected) {
-                throw new Error('Open Payments no disponible. Modo offline.');
+            // Obtener información de la wallet del merchant
+            const receivingWallet = await openPaymentsConfig.getWalletInfo(receivingWalletUrl);
+            console.log('✅ Wallet info obtenida:', receivingWallet.id);
+
+            if (!receivingWallet.authServer) {
+                throw new Error('Wallet no tiene servidor de autenticación configurado');
             }
 
-            console.log(`💳 Creando incoming payment para ${amount} en ${receivingWalletUrl}`);
-            
-            const receivingWallet = await this.config.getWalletInfo(receivingWalletUrl);
-
+            // Solicitar grant de autorización
+            console.log('🔑 Solicitando grant de autorización...');
             const grant = await this.client.grant.request(
                 { url: receivingWallet.authServer },
                 {
                     access_token: {
-                        access: [{ type: "incoming-payment", actions: ["create", "read"] }]
+                        access: [
+                            { 
+                                type: "incoming-payment", 
+                                actions: ["create", "read", "list"] 
+                            },
+                            {
+                                type: "quote",
+                                actions: ["create"]
+                            }
+                        ]
                     }
                 }
             );
 
-            const validatedGrant = this.config.validateGrant(grant);
+            console.log('✅ Grant recibido:', grant.id);
+            const validatedGrant = openPaymentsConfig.validateGrant(grant);
 
+            // CORREGIDO: Remover 'description' y usar parámetros válidos
+            console.log('💰 Creando incoming payment...');
             const incomingPayment = await this.client.incomingPayment.create(
                 {
                     url: receivingWallet.resourceServer,
@@ -66,15 +74,17 @@ class OpenPaymentsService {
                 {
                     walletAddress: receivingWallet.id,
                     incomingAmount: {
-                        assetCode: receivingWallet.assetCode,
-                        assetScale: receivingWallet.assetScale,
-                        value: amount.toString()
+                        assetCode: currency,
+                        assetScale: 2,
+                        value: (amount * 100).toString() // Convertir a centavos
                     },
-                    expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString()
+                    expiresAt: new Date(Date.now() + 15 * 60 * 1000).toISOString()
+                    // REMOVIDO: description no es un parámetro válido
                 }
             );
 
             console.log('✅ Incoming payment creado:', incomingPayment.id);
+            
             return { 
                 success: true, 
                 incomingPayment, 
@@ -83,79 +93,65 @@ class OpenPaymentsService {
             };
 
         } catch (error) {
-            console.warn('⚠️  Error creando incoming payment:', error.message);
+            console.error('❌ Error creando incoming payment:', error);
             
-            // Modo offline: generar un ID simulado
-            const simulatedPayment = {
-                id: `simulated-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-                walletAddress: receivingWalletUrl,
-                incomingAmount: {
-                    value: amount.toString(),
-                    assetCode: 'MXN',
-                    assetScale: 2
-                },
-                expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 horas
-                simulated: true
-            };
-
-            return {
-                success: true,
-                incomingPayment: simulatedPayment,
-                mode: 'offline',
-                message: 'Pago creado en modo offline. Se sincronizará cuando la conexión se restablezca.'
-            };
+            // Log más detallado del error
+            if (error.description) {
+                console.error('📋 Detalles del error:', error.description);
+            }
+            if (error.status) {
+                console.error('📊 Status code:', error.status);
+            }
+            
+            throw new Error(`Error creando pago: ${error.description || error.message}`);
         }
     }
 
     async checkPaymentStatus(paymentUrl) {
-        try {
-            await this.initialize();
-            
-            if (!this.isConnected || paymentUrl.includes('simulated-') || paymentUrl.includes('offline-')) {
-                // Para pagos simulados/offline, retornar estado pendiente
-                return {
-                    completed: false,
-                    receivedAmount: { value: '0' },
-                    state: 'pending',
-                    mode: 'offline'
-                };
-            }
+        await this.initialize();
 
+        try {
+            console.log('🔍 Verificando estado del pago:', paymentUrl);
             const payment = await this.client.incomingPayment.get({ url: paymentUrl });
-            return {
+            
+            console.log('📊 Estado del pago:', {
+                id: payment.id,
                 completed: payment.completed,
                 receivedAmount: payment.receivedAmount,
-                state: payment.state,
-                mode: 'online'
+                state: payment.state
+            });
+
+            return {
+                completed: payment.completed || false,
+                receivedAmount: payment.receivedAmount || { value: '0' },
+                state: payment.state || 'pending',
+                mode: 'online',
+                paymentDetails: payment
             };
         } catch (error) {
-            console.warn('⚠️  Error verificando estado de pago:', error.message);
-            return {
-                completed: false,
-                receivedAmount: { value: '0' },
-                state: 'error',
-                mode: 'offline',
-                error: error.message
-            };
+            console.error('❌ Error verificando estado del pago:', error);
+            throw error;
         }
     }
 
-    // Verificar estado de conexión
     getConnectionStatus() {
         return {
             isConnected: this.isConnected,
-            retries: this.connectionRetries,
-            maxRetries: this.maxRetries
+            mode: 'online',
+            timestamp: new Date().toISOString(),
+            error: this.connectionError
         };
     }
 
-    // Intentar reconectar manualmente
     async reconnect() {
+        console.log('🔄 Reconectando servicio Open Payments...');
         this.client = null;
         this.isConnected = false;
-        this.connectionRetries = 0;
-        return this.initialize();
+        this.connectionError = null;
+        
+        return await this.initialize();
     }
 }
 
-export default new OpenPaymentsService();
+const openPaymentsService = new OpenPaymentsService();
+export default openPaymentsService;

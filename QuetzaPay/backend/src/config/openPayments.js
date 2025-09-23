@@ -1,54 +1,89 @@
-import { createAuthenticatedClient, isFinalizedGrant } from '@interledger/open-payments';
+// Versión más compatible
+import dotenv from 'dotenv';
+dotenv.config();
+
+// Importación dinámica para manejar mejor CommonJS
+let openPaymentsPkg;
+try {
+    openPaymentsPkg = await import('@interledger/open-payments');
+} catch (error) {
+    console.error('❌ Error importing open-payments package:', error);
+    throw error;
+}
+
+const { createAuthenticatedClient, isFinalizedGrant } = openPaymentsPkg.default || openPaymentsPkg;
 
 export class OpenPaymentsConfig {
-  constructor() {
-    // Asegurar que los saltos de línea sean correctos
-    this.privateKey = process.env.OPEN_PAYMENTS_PRIVATE_KEY?.replace(/\\n/g, '\n');
-    this.keyId = process.env.OPEN_PAYMENTS_KEY_ID;
-    this.walletAddressUrl = process.env.MERCHANT_WALLET_ADDRESS_URL;
-    
-    this.validateConfig();
-  }
-
-  validateConfig() {
-    if (!this.privateKey) {
-      throw new Error('OPEN_PAYMENTS_PRIVATE_KEY is required');
-    }
-    if (!this.keyId) {
-      throw new Error('OPEN_PAYMENTS_KEY_ID is required');
-    }
-    if (!this.walletAddressUrl) {
-      throw new Error('MERCHANT_WALLET_ADDRESS_URL is required');
+    constructor() {
+        this.privateKey = process.env.OPEN_PAYMENTS_PRIVATE_KEY?.replace(/\\n/g, '\n');
+        this.keyId = process.env.OPEN_PAYMENTS_KEY_ID;
+        this.walletAddressUrl = process.env.MERCHANT_WALLET_ADDRESS_URL;
+        
+        this.validateConfig();
     }
 
-    // Validar formato básico de la clave privada
-    if (!this.privateKey.includes('-----BEGIN PRIVATE KEY-----')) {
-      throw new Error('La clave privada no tiene el formato PEM correcto');
-    }
-  }
+    validateConfig() {
+        const errors = [];
+        
+        if (!this.privateKey) {
+            errors.push('OPEN_PAYMENTS_PRIVATE_KEY no encontrada');
+        }
 
-  async getAuthenticatedClient() {
-    try {
-      return await createAuthenticatedClient({
-        walletAddressUrl: this.walletAddressUrl,
-        privateKey: this.privateKey,
-        keyId: this.keyId
-      });
-    } catch (error) {
-      console.error('Error creando cliente autenticado:', error.message);
-      throw new Error(`Failed to create authenticated client: ${error.message}`);
-    }
-  }
+        if (!this.keyId) {
+            errors.push('OPEN_PAYMENTS_KEY_ID no encontrado');
+        }
 
-  validateGrant(grant) {
-    if (!isFinalizedGrant(grant)) {
-      throw new Error('Grant not finalized - authentication failed');
-    }
-    return grant;
-  }
+        if (!this.walletAddressUrl) {
+            errors.push('MERCHANT_WALLET_ADDRESS_URL no encontrada');
+        }
 
-  async getWalletInfo(walletUrl) {
-    const client = await this.getAuthenticatedClient();
-    return await client.walletAddress.get({ url: walletUrl });
-  }
+        if (errors.length > 0) {
+            console.error('❌ Configuración Open Payments incompleta:', errors);
+            throw new Error(`Configuración requerida: ${errors.join(', ')}`);
+        }
+
+        console.log('✅ Configuración Open Payments validada');
+    }
+
+    async getAuthenticatedClient() {
+        try {
+            console.log('🔑 Creando cliente autenticado Open Payments...');
+
+            const client = await createAuthenticatedClient({
+                walletAddressUrl: this.walletAddressUrl,
+                privateKey: this.privateKey,
+                keyId: this.keyId
+            });
+            
+            console.log('✅ Cliente autenticado creado');
+            return client;
+        } catch (error) {
+            console.error('❌ Error creando cliente Open Payments:', error);
+            throw error;
+        }
+    }
+
+    async getWalletInfo(walletUrl) {
+        try {
+            const client = await this.getAuthenticatedClient();
+            console.log('🔍 Obteniendo información de wallet:', walletUrl);
+            
+            const walletInfo = await client.walletAddress.get({ url: walletUrl });
+            console.log('✅ Información de wallet obtenida');
+            
+            return walletInfo;
+        } catch (error) {
+            console.error('❌ Error obteniendo información de wallet:', error);
+            throw error;
+        }
+    }
+
+    validateGrant(grant) {
+        if (!isFinalizedGrant(grant)) {
+            throw new Error('Grant no finalizado - autenticación fallida');
+        }
+        return grant;
+    }
 }
+
+export const openPaymentsConfig = new OpenPaymentsConfig();

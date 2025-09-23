@@ -5,6 +5,8 @@ const router = express.Router();
 
 // Estado del servicio
 router.get('/status', paymentController.getServiceStatus);
+
+// Reconectar servicio
 router.post('/reconnect', paymentController.reconnectService);
 
 // Crear nuevo pago (generar QR)
@@ -13,4 +15,5 @@ router.post('/', paymentController.createPayment);
 // Verificar estado de un pago
 router.get('/:transactionId/status', paymentController.checkPaymentStatus);
 
-export default router;
+// Exportar el router directamente
+export { router as paymentRoutes };
