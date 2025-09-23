@@ -96,7 +96,7 @@ En México, el **92% de los microempresarios opera en efectivo**, lo que genera:
 # 🌐 QuetzaPay
 
 <p align="center">
-  <img src="https://github.com/AmAr-2151/Quetzacode/blob/main/assets/Logo.png" alt="QuetzaPay Logo" width="250"/>
+  <img src="https://github.com/AmAr-2151/Quetzacode/blob/main/QuetzaPay/assets/Logo.png" alt="QuetzaPay Logo" width="250"/>
 </p>
 
 ![GitHub repo size](https://img.shields.io/github/repo-size/AmAr-2151/Quetzacode?color=blue)
