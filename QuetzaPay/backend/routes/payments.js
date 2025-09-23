@@ -1,11 +1,9 @@
-// backend/routes/payments.js
 import express from 'express'
 import fs from 'fs'
-import path from 'path'
 import { createAuthenticatedClient } from '@interledger/open-payments'
+
 const router = express.Router()
 
-// helper: init client (cache if quieres)
 async function makeClient() {
   try {
     const walletAddress = process.env.WALLET_ADDRESS
@@ -35,7 +33,7 @@ async function makeClient() {
   }
 }
 
-// 1) Obtener info de walletAddress (assetScale / code / authServer / resourceServer)
+// 1) Obtener info de walletAddress
 router.get('/wallet-info', async (req, res) => {
   try {
     const client = await makeClient()
@@ -47,15 +45,15 @@ router.get('/wallet-info', async (req, res) => {
   }
 })
 
-// 2) Crear incoming payment
+// 2) Crear incoming payment (VERSIÓN CORREGIDA)
 router.post('/incoming-payments', async (req, res) => {
   try {
     const { incomingAmount, metadata } = req.body
     const client = await makeClient()
-    const incomingPaymentClient = createIncomingPaymentClient({ client })
 
-    const created = await incomingPaymentClient.create({
-      walletAddressUrl: process.env.WALLET_ADDRESS,
+    // CORRECCIÓN: Usar client.incomingPayment directamente
+    const created = await client.incomingPayment({
+      walletAddress: process.env.WALLET_ADDRESS,
       incomingAmount: {
         value: String(incomingAmount),
         assetCode: 'USD',
@@ -63,36 +61,35 @@ router.post('/incoming-payments', async (req, res) => {
       },
       metadata
     })
+    
     res.status(201).json(created)
   } catch (err) {
-    console.error(err)
-    res.status(500).json({ error: err.message })
+    console.error('Error detallado:', err)
+    res.status(500).json({ 
+      error: err.message,
+      details: err.response?.data || err 
+    })
   }
 })
 
-
-
-// 3) Crear quote para payerWallet (quote describe cuánto debe debitarse del pagador)
+// 3) Crear quote (CORREGIDO)
 router.post('/quotes', async (req, res) => {
   try {
-    const { payerWalletUrl, incomingPaymentUrl } = req.body
+    const { payerWalletUrl, incomingPaymentUrl, amount } = req.body
     const client = await makeClient()
 
-    // get recipient wallet info (to know assetCode/scale) and sender wallet info
     const recipientInfo = await client.walletAddress.get({ url: process.env.WALLET_ADDRESS })
     const senderInfo = await client.walletAddress.get({ url: payerWalletUrl })
 
-    // create quote on sender's resource server
-    // The library handles auth flow for resource server endpoints using the client methods
-    const quote = await client.quotes.create({
-      body: {
-        receiver: incomingPaymentUrl,
-        // the amount received by receiver (e.g. in receiver's units)
-        receiveAmount: { value: '100', assetCode: recipientInfo.assetCode, assetScale: recipientInfo.assetScale },
-        // optional metadata
-      },
-      // the quote needs to be created on the sender's resource server
-      resourceServerUrl: senderInfo.resourceServer
+    // CORRECCIÓN: Usar client.quote directamente
+    const quote = await client.quote({
+      walletAddress: payerWalletUrl,
+      receiver: incomingPaymentUrl,
+      receiveAmount: { 
+        value: String(amount), 
+        assetCode: recipientInfo.assetCode, 
+        assetScale: recipientInfo.assetScale 
+      }
     })
 
     res.status(201).json(quote)
@@ -102,28 +99,38 @@ router.post('/quotes', async (req, res) => {
   }
 })
 
-// 4) Create outgoing payment (this requires an interactive grant flow in general)
+// 4) Create outgoing payment (CORREGIDO)
 router.post('/outgoing-payments', async (req, res) => {
   try {
     const { payerWalletUrl, quoteId, continueUrl } = req.body
     const client = await makeClient()
-    // 1) request an interactive outgoing grant against payer wallet's auth server
+    
     const payerInfo = await client.walletAddress.get({ url: payerWalletUrl })
     const authServer = payerInfo.authServer
 
-    // request an interactive grant - the open-payments client will return grant details incl a redirect URL
-    const grantRequest = await client.grants.create({
-      body: {
-        type: 'outgoing-payment',
-        actions: ['create'],
-        identifier: payerWalletUrl,
-        limits: { receiver: quoteId } // simplified; use correct structure required by API
+    // CORRECCIÓN: Usar client.grant directamente
+    const grantRequest = await client.grant(
+      {
+        access_token: {
+          access: [
+            {
+              type: 'outgoing-payment',
+              actions: ['create'],
+              identifier: payerWalletUrl
+            }
+          ]
+        },
+        interact: {
+          start: ['redirect'],
+          finish: {
+            method: 'redirect',
+            uri: continueUrl
+          }
+        }
       },
-      authServerUrl: authServer,
-      continueUrl // where the wallet will redirect the user after interactive consent
-    })
+      authServer
+    )
 
-    // client.grants.create returns information to redirect user or continue the flow
     res.status(201).json(grantRequest)
   } catch (err) {
     console.error(err)
@@ -131,12 +138,10 @@ router.post('/outgoing-payments', async (req, res) => {
   }
 })
 
-// 5) webhook endpoint (wallet/resource server can call when incoming payment completed)
-// Configura en la test wallet para que haga POST aquí cuando un incoming payment reciba fondos
+// 5) webhook endpoint
 router.post('/webhook/incoming-payment-updated', (req, res) => {
   const io = req.app.get('io')
   const body = req.body
-  // simple example: notify frontend via socket.io
   io.emit('incoming_payment_updated', body)
   res.status(200).json({ received: true })
 })
